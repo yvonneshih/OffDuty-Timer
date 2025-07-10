@@ -2,20 +2,30 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>下班倒计时与实时工资计算器</title>
     <style>
         body { font-family: 'Inter', 'Microsoft YaHei', Arial, sans-serif; background: #f7f8fa; color: #222; margin: 0; padding: 0; }
-        .container { width: 100%; max-width: 370px; margin: 48px auto; background: #fff; border-radius: 18px; box-shadow: 0 4px 32px #0001; padding: 32px 24px 28px 24px; box-sizing: border-box; }
+        .container { 
+            width: 100%; 
+            max-width: 500px; 
+            margin: 20px auto; 
+            background: #fff; 
+            border-radius: 18px; 
+            box-shadow: 0 4px 32px #0001; 
+            padding: 32px 24px 28px 24px; 
+            box-sizing: border-box; 
+        }
         h2 { text-align: center; margin-bottom: 28px; font-weight: 600; font-size: 1.35rem; letter-spacing: 0.5px; }
         label { display: block; margin-top: 18px; font-weight: 500; font-size: 1rem; color: #444; letter-spacing: 0.1px; }
         input[type="time"], input[type="number"] {
             width: 100%;
-            padding: 10px 12px;
+            padding: 12px 14px;
             margin-top: 7px;
             border: none;
             border-radius: 7px;
             background: #f3f4f8;
-            font-size: 1.08rem;
+            font-size: 1.1rem;
             color: #222;
             box-sizing: border-box;
             outline: none;
@@ -28,19 +38,19 @@
             margin-top: 32px;
             background: #f8fafc;
             border-radius: 10px;
-            padding: 22px 10px 18px 10px;
-            font-size: 1.08rem;
+            padding: 24px 16px 20px 16px;
+            font-size: 1.1rem;
             text-align: center;
             box-shadow: 0 1px 4px #0001;
         }
-        .money { color: #27ae60; font-weight: 600; font-size: 1.25rem; letter-spacing: 0.2px; }
-        .countdown { color: #e67e22; font-weight: 600; font-size: 1.25rem; letter-spacing: 0.2px; }
+        .money { color: #27ae60; font-weight: 600; font-size: 1.3rem; letter-spacing: 0.2px; }
+        .countdown { color: #e67e22; font-weight: 600; font-size: 1.3rem; letter-spacing: 0.2px; }
         .row { margin-top: 15px; }
         #langSelect {
             border: none;
             background: #f3f4f8;
             border-radius: 7px;
-            padding: 7px 12px;
+            padding: 8px 12px;
             font-size: 1rem;
             color: #222;
             outline: none;
@@ -48,9 +58,55 @@
             transition: background 0.2s;
         }
         #langSelect:focus { background: #e9eaf0; }
-        @media (max-width: 480px) {
-            .container { width: 98vw; max-width: 98vw; padding: 18px 2vw 18px 2vw; }
-            h2 { font-size: 1.05rem; }
+        
+        /* Mobile optimization */
+        @media (max-width: 600px) {
+            .container { 
+                width: 95vw; 
+                max-width: 95vw; 
+                margin: 15px auto;
+                padding: 24px 20px 20px 20px; 
+            }
+            h2 { font-size: 1.25rem; margin-bottom: 24px; }
+            input[type="time"], input[type="number"] {
+                padding: 14px 16px;
+                font-size: 1.15rem;
+            }
+            .result {
+                padding: 20px 14px 16px 14px;
+                font-size: 1.05rem;
+            }
+            .money, .countdown { font-size: 1.25rem; }
+        }
+        
+        /* Very small screens */
+        @media (max-width: 400px) {
+            .container { 
+                width: 98vw; 
+                max-width: 98vw; 
+                margin: 10px auto;
+                padding: 20px 16px 16px 16px; 
+            }
+            h2 { font-size: 1.15rem; margin-bottom: 20px; }
+            label { font-size: 0.95rem; }
+            input[type="time"], input[type="number"] {
+                padding: 12px 14px;
+                font-size: 1.1rem;
+            }
+            .result {
+                padding: 18px 12px 14px 12px;
+                font-size: 1rem;
+            }
+            .money, .countdown { font-size: 1.2rem; }
+        }
+        
+        /* Landscape phones */
+        @media (max-width: 800px) and (orientation: landscape) {
+            .container { 
+                width: 90vw; 
+                max-width: 90vw; 
+                margin: 10px auto;
+            }
         }
     </style>
 </head>
@@ -72,7 +128,7 @@
         <input type="time" id="endTime" value="18:00">
     </label>
     <label id="labelSalary">月薪（元）
-        <input type="number" id="monthlySalary" value="10000" min="0">
+        <input type="number" id="monthlySalary" value="2690" min="0">
     </label>
     <div class="result">
         <div class="row" id="rowCountdown">距离下班还有：<span class="countdown" id="countdown">--:--:--</span></div>
@@ -234,4 +290,4 @@ update();
 setLang(currentLang);
 </script>
 </body>
-</html> 
+</html>
