@@ -46,6 +46,35 @@
         .money { color: #27ae60; font-weight: 600; font-size: 1.3rem; letter-spacing: 0.2px; }
         .countdown { color: #e67e22; font-weight: 600; font-size: 1.3rem; letter-spacing: 0.2px; }
         .row { margin-top: 15px; }
+        .salary-rate { color: #3498db; font-weight: 600; font-size: 1.1rem; letter-spacing: 0.1px; }
+        .overtime { color: #e74c3c; font-weight: 600; font-size: 1.1rem; }
+        .off-duty-toggle {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .toggle-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+        }
+        .toggle-btn:hover {
+            background: #2980b9;
+            transform: translateY(-1px);
+        }
+        .toggle-btn.off-duty {
+            background: #e74c3c;
+            box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+        }
+        .toggle-btn.off-duty:hover {
+            background: #c0392b;
+        }
         #langSelect {
             border: none;
             background: #f3f4f8;
@@ -128,12 +157,18 @@
         <input type="time" id="endTime" value="18:00">
     </label>
     <label id="labelSalary">月薪（元）
-        <input type="number" id="monthlySalary" value="2690" min="0">
+        <input type="number" id="monthlySalary" value="10000" min="0">
     </label>
     <div class="result">
         <div class="row" id="rowCountdown">距离下班还有：<span class="countdown" id="countdown">--:--:--</span></div>
         <div class="row" id="rowToday">今日已赚：<span class="money" id="todayEarned">￥0.00</span></div>
         <div class="row" id="rowMonth">本月已赚：<span class="money" id="monthEarned">￥0.00</span></div>
+        <div class="row" id="rowHourly">每小时：<span class="salary-rate" id="hourlySalary">￥0.00</span></div>
+        <div class="row" id="rowMinute">每分钟：<span class="salary-rate" id="minuteSalary">￥0.00</span></div>
+        <div class="row" id="rowOvertime" style="display:none;">加班损失：<span class="overtime" id="overtimeLoss">￥0.00</span></div>
+    </div>
+    <div class="off-duty-toggle">
+        <button class="toggle-btn" id="offDutyBtn">我还在上班</button>
     </div>
 </div>
 <script>
@@ -193,6 +228,11 @@ const i18n = {
         countdown: '距离下班还有：',
         today: '今日已赚：',
         month: '本月已赚：',
+        hourly: '每小时：',
+        minute: '每分钟：',
+        overtime: '加班损失：',
+        onDuty: '我还在上班',
+        offDuty: '我已下班',
         currency: '￥',
         lang: '语言'
     },
@@ -204,6 +244,11 @@ const i18n = {
         countdown: 'Time left until off duty:',
         today: 'Earned today:',
         month: 'Earned this month:',
+        hourly: 'Per hour:',
+        minute: 'Per minute:',
+        overtime: 'Overtime loss:',
+        onDuty: 'Still Working',
+        offDuty: 'Off Duty',
         currency: '¥',
         lang: 'Language'
     },
@@ -215,6 +260,11 @@ const i18n = {
         countdown: 'Tid igjen til arbeidsdag slutt:',
         today: 'Tjent i dag:',
         month: 'Tjent denne måneden:',
+        hourly: 'Per time:',
+        minute: 'Per minutt:',
+        overtime: 'Overtidstap:',
+        onDuty: 'Fortsatt på jobb',
+        offDuty: 'Ferdig med jobb',
         currency: '¥',
         lang: 'Språk'
     }
@@ -228,15 +278,44 @@ function setLang(lang) {
     document.getElementById('rowCountdown').childNodes[0].textContent = i18n[lang].countdown;
     document.getElementById('rowToday').childNodes[0].textContent = i18n[lang].today;
     document.getElementById('rowMonth').childNodes[0].textContent = i18n[lang].month;
+    document.getElementById('rowHourly').childNodes[0].textContent = i18n[lang].hourly;
+    document.getElementById('rowMinute').childNodes[0].textContent = i18n[lang].minute;
+    document.getElementById('rowOvertime').childNodes[0].textContent = i18n[lang].overtime;
+    updateOffDutyButton();
     // 货币符号在update里处理
 }
 
 let currentLang = 'zh';
+let isOffDuty = false;
+let overtimeStartTime = null;
+
 document.getElementById('langSelect').addEventListener('change', function() {
     currentLang = this.value;
     setLang(currentLang);
     update();
 });
+
+document.getElementById('offDutyBtn').addEventListener('click', function() {
+    isOffDuty = !isOffDuty;
+    if (isOffDuty) {
+        overtimeStartTime = new Date();
+    } else {
+        overtimeStartTime = null;
+    }
+    updateOffDutyButton();
+    update();
+});
+
+function updateOffDutyButton() {
+    const btn = document.getElementById('offDutyBtn');
+    if (isOffDuty) {
+        btn.textContent = i18n[currentLang].offDuty;
+        btn.classList.add('off-duty');
+    } else {
+        btn.textContent = i18n[currentLang].onDuty;
+        btn.classList.remove('off-duty');
+    }
+}
 
 function update() {
     let start = document.getElementById('startTime').value;
@@ -246,8 +325,22 @@ function update() {
         document.getElementById('countdown').textContent = '--:--:--';
         document.getElementById('todayEarned').textContent = i18n[currentLang].currency + '0.00';
         document.getElementById('monthEarned').textContent = i18n[currentLang].currency + '0.00';
+        document.getElementById('hourlySalary').textContent = i18n[currentLang].currency + '0.00';
+        document.getElementById('minuteSalary').textContent = i18n[currentLang].currency + '0.00';
+        document.getElementById('overtimeLoss').textContent = i18n[currentLang].currency + '0.00';
+        document.getElementById('rowOvertime').style.display = 'none';
         return;
     }
+    
+    // 计算时薪和分钟薪
+    let dayWorkSeconds = getWorkSeconds(start, end);
+    let dayEarn = salary / getMonthWorkDays();
+    let hourlyRate = dayEarn / (dayWorkSeconds / 3600);
+    let minuteRate = hourlyRate / 60;
+    
+    document.getElementById('hourlySalary').textContent = i18n[currentLang].currency + hourlyRate.toFixed(2);
+    document.getElementById('minuteSalary').textContent = i18n[currentLang].currency + minuteRate.toFixed(2);
+    
     // 下班倒计时
     let now = new Date();
     let [eh, em] = end.split(":").map(Number);
@@ -256,12 +349,35 @@ function update() {
     let diff = Math.max(0, Math.floor((endTime - now) / 1000));
     let h = Math.floor(diff / 3600), m = Math.floor((diff % 3600) / 60), s = diff % 60;
     document.getElementById('countdown').textContent = pad(h) + ':' + pad(m) + ':' + pad(s);
+    
+    // 检查是否在加班时间且已点击下班
+    let isInOvertimeAndOffDuty = false;
+    if (now > endTime.getTime() - 24 * 3600 * 1000 && now < endTime && isOffDuty) {
+        isInOvertimeAndOffDuty = true;
+    } else if (now > endTime && isOffDuty) {
+        isInOvertimeAndOffDuty = true;
+    }
+    
     // 今日已赚
     let { passed, workSec } = getTodayWorkProgress(start, end);
-    let dayEarn = salary / getMonthWorkDays();
     let todayEarned = dayEarn * (passed / workSec);
     if (workSec === 0) todayEarned = 0;
+    
+    // 如果已下班且在加班时间，计算损失
+    if (isInOvertimeAndOffDuty && overtimeStartTime) {
+        let overtimeSeconds = Math.floor((now - overtimeStartTime) / 1000);
+        let overtimeLoss = (overtimeSeconds / 60) * minuteRate;
+        document.getElementById('overtimeLoss').textContent = i18n[currentLang].currency + overtimeLoss.toFixed(2);
+        document.getElementById('rowOvertime').style.display = 'block';
+        
+        // 从今日收入中减去加班损失
+        todayEarned = Math.max(0, todayEarned - overtimeLoss);
+    } else {
+        document.getElementById('rowOvertime').style.display = 'none';
+    }
+    
     document.getElementById('todayEarned').textContent = i18n[currentLang].currency + todayEarned.toFixed(2);
+    
     // 本月已赚
     let nowDay = now.getDate();
     let nowMonth = now.getMonth();
