@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>下班倒计时与实时工资计算器</title>
+    <style>
+        body { font-family: 'Inter', 'Microsoft YaHei', Arial, sans-serif; background: #f7f8fa; color: #222; margin: 0; padding: 0; }
+        .container { max-width: 370px; margin: 48px auto; background: #fff; border-radius: 18px; box-shadow: 0 4px 32px #0001; padding: 32px 24px 28px 24px; }
+        h2 { text-align: center; margin-bottom: 28px; font-weight: 600; font-size: 1.35rem; letter-spacing: 0.5px; }
+        label { display: block; margin-top: 18px; font-weight: 500; font-size: 1rem; color: #444; letter-spacing: 0.1px; }
+        input[type="time"], input[type="number"] {
+            width: 100%;
+            padding: 10px 12px;
+            margin-top: 7px;
+            border: none;
+            border-radius: 7px;
+            background: #f3f4f8;
+            font-size: 1.08rem;
+            color: #222;
+            box-sizing: border-box;
+            outline: none;
+            transition: background 0.2s;
+        }
+        input[type="time"]:focus, input[type="number"]:focus {
+            background: #e9eaf0;
+        }
+        .result {
+            margin-top: 32px;
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 22px 10px 18px 10px;
+            font-size: 1.08rem;
+            text-align: center;
+            box-shadow: 0 1px 4px #0001;
+        }
+        .money { color: #27ae60; font-weight: 600; font-size: 1.25rem; letter-spacing: 0.2px; }
+        .countdown { color: #e67e22; font-weight: 600; font-size: 1.25rem; letter-spacing: 0.2px; }
+        .row { margin-top: 15px; }
+        #langSelect {
+            border: none;
+            background: #f3f4f8;
+            border-radius: 7px;
+            padding: 7px 12px;
+            font-size: 1rem;
+            color: #222;
+            outline: none;
+            margin-left: 6px;
+            transition: background 0.2s;
+        }
+        #langSelect:focus { background: #e9eaf0; }
+        @media (max-width: 480px) {
+            .container { max-width: 98vw; padding: 18px 4vw 18px 4vw; }
+            h2 { font-size: 1.05rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div style="text-align:right;margin-bottom:10px;">
+        <label for="langSelect" style="font-weight:normal;">语言/Language/Språk：</label>
+        <select id="langSelect">
+            <option value="zh">中文</option>
+            <option value="en">English</option>
+            <option value="no">Norsk</option>
+        </select>
+    </div>
+    <h2 id="title">下班倒计时 & 实时工资计算器</h2>
+    <label id="labelStart">上班时间（如 09:00）
+        <input type="time" id="startTime" value="09:00">
+    </label>
+    <label id="labelEnd">下班时间（如 18:00）
+        <input type="time" id="endTime" value="18:00">
+    </label>
+    <label id="labelSalary">月薪（元）
+        <input type="number" id="monthlySalary" value="10000" min="0">
+    </label>
+    <div class="result">
+        <div class="row" id="rowCountdown">距离下班还有：<span class="countdown" id="countdown">--:--:--</span></div>
+        <div class="row" id="rowToday">今日已赚：<span class="money" id="todayEarned">￥0.00</span></div>
+        <div class="row" id="rowMonth">本月已赚：<span class="money" id="monthEarned">￥0.00</span></div>
+    </div>
+</div>
+<script>
+function pad(n) { return n < 10 ? '0' + n : n; }
+
+function getWorkSeconds(start, end) {
+    // 计算一天的工作总秒数
+    let [sh, sm] = start.split(":").map(Number);
+    let [eh, em] = end.split(":").map(Number);
+    let startSec = sh * 3600 + sm * 60;
+    let endSec = eh * 3600 + em * 60;
+    if (endSec <= startSec) endSec += 24 * 3600; // 跨天
+    return endSec - startSec;
+}
+
+function getTodayWorkProgress(start, end) {
+    let now = new Date();
+    let [sh, sm] = start.split(":").map(Number);
+    let [eh, em] = end.split(":").map(Number);
+    let startSec = sh * 3600 + sm * 60;
+    let endSec = eh * 3600 + em * 60;
+    let nowSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+    if (endSec <= startSec) endSec += 24 * 3600; // 跨天
+    let workSec = endSec - startSec;
+    let passed = nowSec - startSec;
+    if (nowSec < startSec) passed = 0;
+    if (nowSec > endSec) passed = workSec;
+    if (passed < 0) passed = 0;
+    if (passed > workSec) passed = workSec;
+    return { passed, workSec };
+}
+
+function getMonthWorkDays() {
+    // 计算本月工作日天数（周一到周五）
+    let now = new Date();
+    let year = now.getFullYear();
+    let month = now.getMonth();
+    let days = new Date(year, month + 1, 0).getDate();
+    let workdays = 0;
+    for (let d = 1; d <= days; d++) {
+        let day = new Date(year, month, d).getDay();
+        if (day !== 0 && day !== 6) workdays++;
+    }
+    return workdays;
+}
+
+function getMonthWorkSeconds(start, end) {
+    return getWorkSeconds(start, end) * getMonthWorkDays();
+}
+
+const i18n = {
+    zh: {
+        title: '下班倒计时 & 实时工资计算器',
+        start: '上班时间（如 09:00）',
+        end: '下班时间（如 18:00）',
+        salary: '月薪（元）',
+        countdown: '距离下班还有：',
+        today: '今日已赚：',
+        month: '本月已赚：',
+        currency: '￥',
+        lang: '语言'
+    },
+    en: {
+        title: 'Off Duty Countdown & Real-time Salary Calculator',
+        start: 'Start Time (e.g. 09:00)',
+        end: 'Off Duty Time (e.g. 18:00)',
+        salary: 'Monthly Salary (CNY)',
+        countdown: 'Time left until off duty:',
+        today: 'Earned today:',
+        month: 'Earned this month:',
+        currency: '¥',
+        lang: 'Language'
+    },
+    no: {
+        title: 'Nedtelling til arbeidsdag slutt & Lønnskalkulator',
+        start: 'Arbeidsstart (f.eks. 09:00)',
+        end: 'Arbeidsslutt (f.eks. 18:00)',
+        salary: 'Månedslønn (CNY)',
+        countdown: 'Tid igjen til arbeidsdag slutt:',
+        today: 'Tjent i dag:',
+        month: 'Tjent denne måneden:',
+        currency: '¥',
+        lang: 'Språk'
+    }
+};
+
+function setLang(lang) {
+    document.getElementById('title').textContent = i18n[lang].title;
+    document.getElementById('labelStart').childNodes[0].textContent = i18n[lang].start;
+    document.getElementById('labelEnd').childNodes[0].textContent = i18n[lang].end;
+    document.getElementById('labelSalary').childNodes[0].textContent = i18n[lang].salary;
+    document.getElementById('rowCountdown').childNodes[0].textContent = i18n[lang].countdown;
+    document.getElementById('rowToday').childNodes[0].textContent = i18n[lang].today;
+    document.getElementById('rowMonth').childNodes[0].textContent = i18n[lang].month;
+    // 货币符号在update里处理
+}
+
+let currentLang = 'zh';
+document.getElementById('langSelect').addEventListener('change', function() {
+    currentLang = this.value;
+    setLang(currentLang);
+    update();
+});
+
+function update() {
+    let start = document.getElementById('startTime').value;
+    let end = document.getElementById('endTime').value;
+    let salary = parseFloat(document.getElementById('monthlySalary').value) || 0;
+    if (!start || !end || salary <= 0) {
+        document.getElementById('countdown').textContent = '--:--:--';
+        document.getElementById('todayEarned').textContent = i18n[currentLang].currency + '0.00';
+        document.getElementById('monthEarned').textContent = i18n[currentLang].currency + '0.00';
+        return;
+    }
+    // 下班倒计时
+    let now = new Date();
+    let [eh, em] = end.split(":").map(Number);
+    let endTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), eh, em, 0);
+    if (endTime < now) endTime.setDate(endTime.getDate() + 1); // 跨天
+    let diff = Math.max(0, Math.floor((endTime - now) / 1000));
+    let h = Math.floor(diff / 3600), m = Math.floor((diff % 3600) / 60), s = diff % 60;
+    document.getElementById('countdown').textContent = pad(h) + ':' + pad(m) + ':' + pad(s);
+    // 今日已赚
+    let { passed, workSec } = getTodayWorkProgress(start, end);
+    let dayEarn = salary / getMonthWorkDays();
+    let todayEarned = dayEarn * (passed / workSec);
+    if (workSec === 0) todayEarned = 0;
+    document.getElementById('todayEarned').textContent = i18n[currentLang].currency + todayEarned.toFixed(2);
+    // 本月已赚
+    let nowDay = now.getDate();
+    let nowMonth = now.getMonth();
+    let nowYear = now.getFullYear();
+    let earned = 0;
+    let workdays = 0;
+    for (let d = 1; d <= nowDay; d++) {
+        let day = new Date(nowYear, nowMonth, d).getDay();
+        if (day !== 0 && day !== 6) {
+            workdays++;
+            if (d === nowDay) {
+                earned += todayEarned;
+            } else {
+                earned += dayEarn;
+            }
+        }
+    }
+    document.getElementById('monthEarned').textContent = i18n[currentLang].currency + earned.toFixed(2);
+}
+
+['startTime', 'endTime', 'monthlySalary'].forEach(id => {
+    document.getElementById(id).addEventListener('input', update);
+});
+setInterval(update, 1000);
+update();
+setLang(currentLang);
+</script>
+</body>
+</html> 
