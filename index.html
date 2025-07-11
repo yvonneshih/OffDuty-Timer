@@ -43,6 +43,22 @@
             text-align: center;
             box-shadow: 0 1px 4px #0001;
         }
+        .realtime-section, .fixed-section {
+            margin-bottom: 24px;
+        }
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #444;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e1e5e9;
+            text-align: center;
+        }
+        .row {
+            margin-bottom: 12px;
+            text-align: center;
+        }
         .money { color: #27ae60; font-weight: 600; font-size: 1.3rem; letter-spacing: 0.2px; }
         .countdown { color: #e67e22; font-weight: 600; font-size: 1.3rem; letter-spacing: 0.2px; }
         .row { margin-top: 15px; }
@@ -131,6 +147,13 @@
                 padding: 20px 14px 16px 14px;
                 font-size: 1.05rem;
             }
+            .realtime-section, .fixed-section {
+                margin-bottom: 20px;
+            }
+            .section-title {
+                font-size: 1rem;
+                margin-bottom: 12px;
+            }
             .money, .countdown { font-size: 1.25rem; }
         }
         
@@ -218,14 +241,22 @@
         </select>
     </label>
     <div class="result">
-        <div class="row" id="rowCurrentTime">当前时间：<span class="countdown" id="currentTime">--:--:--</span></div>
-        <div class="row" id="rowCountdown">距离下班还有：<span class="countdown" id="countdown">--:--:--</span></div>
-        <div class="row" id="rowDaily">日薪：<span class="money" id="dailySalary">￥0.00</span></div>
-        <div class="row" id="rowToday">今日已赚：<span class="money" id="todayEarned">￥0.00</span></div>
-        <div class="row" id="rowMonth">本月已赚：<span class="money" id="monthEarned">￥0.00</span></div>
-        <div class="row" id="rowHourly">每小时：<span class="salary-rate" id="hourlySalary">￥0.00</span></div>
-        <div class="row" id="rowMinute">每分钟：<span class="salary-rate" id="minuteSalary">￥0.00</span></div>
-        <div class="row" id="rowOvertime" style="display:none;">加班损失：<span class="overtime" id="overtimeLoss">￥0.00</span></div>
+        <div class="realtime-section">
+            <div class="section-title">实时数据</div>
+            <div class="row" id="rowCurrentTime">当前时间：<span class="countdown" id="currentTime">--:--:--</span></div>
+            <div class="row" id="rowCountdown">距离下班还有：<span class="countdown" id="countdown">--:--:--</span></div>
+            <div class="row" id="rowToday">今日已赚：<span class="money" id="todayEarned">¥0.00</span></div>
+            <div class="row" id="rowMonth">本月已赚：<span class="money" id="monthEarned">¥0.00</span></div>
+            <div class="row" id="rowOvertime" style="display:none;">加班损失：<span class="overtime" id="overtimeLoss">¥0.00</span></div>
+        </div>
+        <div class="fixed-section">
+            <div class="section-title">基础信息</div>
+            <div class="row" id="rowMonthInfo">月份：<span class="countdown" id="monthInfo">--</span></div>
+            <div class="row" id="rowWorkdays">工作日：<span class="countdown" id="workdays">--</span></div>
+            <div class="row" id="rowDaily">日薪：<span class="money" id="dailySalary">¥0.00</span></div>
+            <div class="row" id="rowHourly">每小时：<span class="salary-rate" id="hourlySalary">¥0.00</span></div>
+            <div class="row" id="rowMinute">每分钟：<span class="salary-rate" id="minuteSalary">¥0.00</span></div>
+        </div>
     </div>
     <div class="off-duty-toggle">
         <button class="toggle-btn" id="offDutyBtn">我还在上班</button>
@@ -327,6 +358,8 @@ const i18n = {
         currency: '货币',
         currentTime: '当前时间：',
         countdown: '距离下班还有：',
+        monthInfo: '月份：',
+        workdays: '工作日：',
         daily: '日薪：',
         today: '今日已赚：',
         month: '本月已赚：',
@@ -335,9 +368,11 @@ const i18n = {
         overtime: '加班损失：',
         offDutyBtn: '下班',
         offDutyClicked: '已下班',
-        currencySymbol: '￥',
+        currencySymbol: '¥',
         lang: '语言',
-        timezone: '时区'
+        timezone: '时区',
+        realtimeTitle: '实时数据',
+        fixedTitle: '基础信息'
     },
     en: {
         title: 'Off Duty Countdown & Real-time Salary Calculator',
@@ -347,6 +382,8 @@ const i18n = {
         currency: 'Currency',
         currentTime: 'Current time:',
         countdown: 'Time left until off duty:',
+        monthInfo: 'Month:',
+        workdays: 'Workdays:',
         daily: 'Daily salary:',
         today: 'Earned today:',
         month: 'Earned this month:',
@@ -357,7 +394,9 @@ const i18n = {
         offDutyClicked: 'Off Duty',
         currencySymbol: '¥',
         lang: 'Language',
-        timezone: 'Timezone'
+        timezone: 'Timezone',
+        realtimeTitle: 'Real-time Data',
+        fixedTitle: 'Basic Information'
     },
     no: {
         title: 'Nedtelling til arbeidsdag slutt & Lønnskalkulator',
@@ -367,6 +406,8 @@ const i18n = {
         currency: 'Valuta',
         currentTime: 'Nåværende tid:',
         countdown: 'Tid igjen til arbeidsdag slutt:',
+        monthInfo: 'Måned:',
+        workdays: 'Arbeidsdager:',
         daily: 'Daglig lønn:',
         today: 'Tjent i dag:',
         month: 'Tjent denne måneden:',
@@ -377,7 +418,9 @@ const i18n = {
         offDutyClicked: 'Av jobb',
         currencySymbol: '¥',
         lang: 'Språk',
-        timezone: 'Tidssone'
+        timezone: 'Tidssone',
+        realtimeTitle: 'Sanntidsdata',
+        fixedTitle: 'Grunnleggende informasjon'
     }
 };
 
@@ -388,6 +431,8 @@ function setLang(lang) {
     document.getElementById('labelSalary').childNodes[0].textContent = i18n[lang].salary;
     document.getElementById('labelCurrency').childNodes[0].textContent = i18n[lang].currency;
     document.getElementById('timezoneLabel').textContent = i18n[lang].timezone + '：';
+    document.getElementById('rowMonthInfo').childNodes[0].textContent = i18n[lang].monthInfo;
+    document.getElementById('rowWorkdays').childNodes[0].textContent = i18n[lang].workdays;
     document.getElementById('rowCurrentTime').childNodes[0].textContent = i18n[lang].currentTime;
     document.getElementById('rowCountdown').childNodes[0].textContent = i18n[lang].countdown;
     document.getElementById('rowDaily').childNodes[0].textContent = i18n[lang].daily;
@@ -396,6 +441,10 @@ function setLang(lang) {
     document.getElementById('rowHourly').childNodes[0].textContent = i18n[lang].hourly;
     document.getElementById('rowMinute').childNodes[0].textContent = i18n[lang].minute;
     document.getElementById('rowOvertime').childNodes[0].textContent = i18n[lang].overtime;
+    
+    // 更新区域标题
+    document.querySelectorAll('.section-title')[0].textContent = i18n[lang].realtimeTitle;
+    document.querySelectorAll('.section-title')[1].textContent = i18n[lang].fixedTitle;
     
     // 更新时区选项的文本
     const timezoneSelect = document.getElementById('timezoneSelect');
@@ -432,7 +481,7 @@ let offDutyClickTime = null;
 
 // 货币配置
 const currencyConfig = {
-    CNY: { symbol: '￥', rate: 1.0 },
+    CNY: { symbol: '¥', rate: 1.0 },
     USD: { symbol: '$', rate: 0.14 },
     EUR: { symbol: '€', rate: 0.13 },
     NOK: { symbol: 'kr', rate: 1.5 },
@@ -492,6 +541,8 @@ function update() {
     if (!start || !end || salary <= 0) {
         document.getElementById('currentTime').textContent = now.toLocaleTimeString('zh-CN', { hour12: false });
         document.getElementById('countdown').textContent = '--:--:--';
+        document.getElementById('monthInfo').textContent = now.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long' });
+        document.getElementById('workdays').textContent = getMonthWorkDays();
         document.getElementById('dailySalary').textContent = currencyInfo.symbol + '0.00';
         document.getElementById('todayEarned').textContent = currencyInfo.symbol + '0.00';
         document.getElementById('monthEarned').textContent = currencyInfo.symbol + '0.00';
@@ -595,6 +646,10 @@ function update() {
         }
     }
     document.getElementById('monthEarned').textContent = currencyInfo.symbol + earned.toFixed(2);
+    
+    // 显示月份和工作日信息
+    document.getElementById('monthInfo').textContent = now.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long' });
+    document.getElementById('workdays').textContent = getMonthWorkDays();
     
     // 显示当前时间
     document.getElementById('currentTime').textContent = now.toLocaleTimeString('zh-CN', { hour12: false });
