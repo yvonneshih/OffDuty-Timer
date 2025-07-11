@@ -53,7 +53,7 @@
             text-align: center;
         }
         .toggle-btn {
-            background: #3498db;
+            background: #e74c3c;
             color: white;
             border: none;
             padding: 12px 24px;
@@ -62,18 +62,18 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
-        }
-        .toggle-btn:hover {
-            background: #2980b9;
-            transform: translateY(-1px);
-        }
-        .toggle-btn.off-duty {
-            background: #e74c3c;
             box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
         }
-        .toggle-btn.off-duty:hover {
+        .toggle-btn:hover {
             background: #c0392b;
+            transform: translateY(-1px);
+        }
+        .toggle-btn.clicked {
+            background: #27ae60;
+            box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3);
+        }
+        .toggle-btn.clicked:hover {
+            background: #229954;
         }
         #langSelect {
             border: none;
@@ -231,8 +231,8 @@ const i18n = {
         hourly: '每小时：',
         minute: '每分钟：',
         overtime: '加班损失：',
-        onDuty: '我还在上班',
-        offDuty: '我已下班',
+        offDutyBtn: '下班',
+        offDutyClicked: '已下班',
         currency: '￥',
         lang: '语言'
     },
@@ -247,8 +247,8 @@ const i18n = {
         hourly: 'Per hour:',
         minute: 'Per minute:',
         overtime: 'Overtime loss:',
-        onDuty: 'Still Working',
-        offDuty: 'Off Duty',
+        offDutyBtn: 'Off Duty',
+        offDutyClicked: 'Off Duty',
         currency: '¥',
         lang: 'Language'
     },
@@ -263,8 +263,8 @@ const i18n = {
         hourly: 'Per time:',
         minute: 'Per minutt:',
         overtime: 'Overtidstap:',
-        onDuty: 'Fortsatt på jobb',
-        offDuty: 'Ferdig med jobb',
+        offDutyBtn: 'Av jobb',
+        offDutyClicked: 'Av jobb',
         currency: '¥',
         lang: 'Språk'
     }
@@ -282,12 +282,11 @@ function setLang(lang) {
     document.getElementById('rowMinute').childNodes[0].textContent = i18n[lang].minute;
     document.getElementById('rowOvertime').childNodes[0].textContent = i18n[lang].overtime;
     updateOffDutyButton();
-    // 货币符号在update里处理
 }
 
 let currentLang = 'zh';
-let isOffDuty = false;
-let overtimeStartTime = null;
+let offDutyClicked = false;
+let offDutyClickTime = null;
 
 document.getElementById('langSelect').addEventListener('change', function() {
     currentLang = this.value;
@@ -296,25 +295,28 @@ document.getElementById('langSelect').addEventListener('change', function() {
 });
 
 document.getElementById('offDutyBtn').addEventListener('click', function() {
-    isOffDuty = !isOffDuty;
-    if (isOffDuty) {
-        overtimeStartTime = new Date();
-    } else {
-        overtimeStartTime = null;
-    }
+    offDutyClicked = true;
+    offDutyClickTime = new Date();
     updateOffDutyButton();
     update();
 });
 
 function updateOffDutyButton() {
     const btn = document.getElementById('offDutyBtn');
-    if (isOffDuty) {
-        btn.textContent = i18n[currentLang].offDuty;
-        btn.classList.add('off-duty');
+    if (offDutyClicked) {
+        btn.textContent = i18n[currentLang].offDutyClicked;
+        btn.classList.add('clicked');
     } else {
-        btn.textContent = i18n[currentLang].onDuty;
-        btn.classList.remove('off-duty');
+        btn.textContent = i18n[currentLang].offDutyBtn;
+        btn.classList.remove('clicked');
     }
+}
+
+function isAfterOffDutyTime(endTime) {
+    let now = new Date();
+    let [eh, em] = endTime.split(":").map(Number);
+    let todayEndTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), eh, em, 0);
+    return now > todayEndTime;
 }
 
 function update() {
@@ -332,49 +334,67 @@ function update() {
         return;
     }
     
-    // 计算时薪和分钟薪
-    let dayWorkSeconds = getWorkSeconds(start, end);
-    let dayEarn = salary / getMonthWorkDays();
-    let hourlyRate = dayEarn / (dayWorkSeconds / 3600);
-    let minuteRate = hourlyRate / 60;
-    
-    document.getElementById('hourlySalary').textContent = i18n[currentLang].currency + hourlyRate.toFixed(2);
-    document.getElementById('minuteSalary').textContent = i18n[currentLang].currency + minuteRate.toFixed(2);
-    
-    // 下班倒计时
     let now = new Date();
     let [eh, em] = end.split(":").map(Number);
     let endTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), eh, em, 0);
+    let isAfterOffDuty = now > endTime;
+    
+    // 计算基础薪资
+    let dayWorkSeconds = getWorkSeconds(start, end);
+    let dayEarn = salary / getMonthWorkDays();
+    let baseHourlyRate = dayEarn / (dayWorkSeconds / 3600);
+    let baseMinuteRate = baseHourlyRate / 60;
+    
+    let displayHourlyRate = baseHourlyRate;
+    let displayMinuteRate = baseMinuteRate;
+    
+    // 逻辑处理
+    if (!isAfterOffDuty) {
+        // 上班时间内
+        if (offDutyClicked) {
+            // 点击了下班按钮 → 工资上涨到正确数额
+            displayHourlyRate = baseHourlyRate;
+            displayMinuteRate = baseMinuteRate;
+        } else {
+            // 没点击下班按钮 → 显示较低工资（比如打8折）
+            displayHourlyRate = baseHourlyRate * 0.8;
+            displayMinuteRate = baseMinuteRate * 0.8;
+        }
+        document.getElementById('rowOvertime').style.display = 'none';
+    } else {
+        // 下班时间后
+        if (!offDutyClicked) {
+            // 没点击下班按钮 → 工资实时下降 + 显示加班损失
+            let overtimeMinutes = Math.floor((now - endTime) / 60000);
+            let reductionFactor = Math.max(0.1, 1 - (overtimeMinutes * 0.01)); // 每分钟减少1%，最低10%
+            displayHourlyRate = baseHourlyRate * reductionFactor;
+            displayMinuteRate = baseMinuteRate * reductionFactor;
+            
+            // 显示加班损失
+            let overtimeLoss = overtimeMinutes * baseMinuteRate * 0.01;
+            document.getElementById('overtimeLoss').textContent = i18n[currentLang].currency + overtimeLoss.toFixed(2);
+            document.getElementById('rowOvertime').style.display = 'block';
+        } else {
+            // 点击了下班按钮 → 正常工资
+            displayHourlyRate = baseHourlyRate;
+            displayMinuteRate = baseMinuteRate;
+            document.getElementById('rowOvertime').style.display = 'none';
+        }
+    }
+    
+    document.getElementById('hourlySalary').textContent = i18n[currentLang].currency + displayHourlyRate.toFixed(2);
+    document.getElementById('minuteSalary').textContent = i18n[currentLang].currency + displayMinuteRate.toFixed(2);
+    
+    // 下班倒计时
     if (endTime < now) endTime.setDate(endTime.getDate() + 1); // 跨天
     let diff = Math.max(0, Math.floor((endTime - now) / 1000));
     let h = Math.floor(diff / 3600), m = Math.floor((diff % 3600) / 60), s = diff % 60;
     document.getElementById('countdown').textContent = pad(h) + ':' + pad(m) + ':' + pad(s);
     
-    // 检查是否在加班时间且已点击下班
-    let isInOvertimeAndOffDuty = false;
-    if (now > endTime.getTime() - 24 * 3600 * 1000 && now < endTime && isOffDuty) {
-        isInOvertimeAndOffDuty = true;
-    } else if (now > endTime && isOffDuty) {
-        isInOvertimeAndOffDuty = true;
-    }
-    
     // 今日已赚
     let { passed, workSec } = getTodayWorkProgress(start, end);
     let todayEarned = dayEarn * (passed / workSec);
     if (workSec === 0) todayEarned = 0;
-    
-    // 如果已下班且在加班时间，计算损失
-    if (isInOvertimeAndOffDuty && overtimeStartTime) {
-        let overtimeSeconds = Math.floor((now - overtimeStartTime) / 1000);
-        let overtimeLoss = (overtimeSeconds / 60) * minuteRate;
-        document.getElementById('overtimeLoss').textContent = i18n[currentLang].currency + overtimeLoss.toFixed(2);
-        document.getElementById('rowOvertime').style.display = 'block';
-        
-        // 从今日收入中减去加班损失
-        todayEarned = Math.max(0, todayEarned - overtimeLoss);
-    } else {
-        document.getElementById('rowOvertime').style.display = 'none';
-    }
     
     document.getElementById('todayEarned').textContent = i18n[currentLang].currency + todayEarned.toFixed(2);
     
@@ -383,11 +403,9 @@ function update() {
     let nowMonth = now.getMonth();
     let nowYear = now.getFullYear();
     let earned = 0;
-    let workdays = 0;
     for (let d = 1; d <= nowDay; d++) {
         let day = new Date(nowYear, nowMonth, d).getDay();
         if (day !== 0 && day !== 6) {
-            workdays++;
             if (d === nowDay) {
                 earned += todayEarned;
             } else {
