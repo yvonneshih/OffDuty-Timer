@@ -88,6 +88,32 @@
         }
         #langSelect:focus { background: #e9eaf0; }
         
+        #timezoneSelect {
+            border: none;
+            background: #f3f4f8;
+            border-radius: 7px;
+            padding: 8px 12px;
+            font-size: 1rem;
+            color: #222;
+            outline: none;
+            margin-left: 6px;
+            transition: background 0.2s;
+        }
+        #timezoneSelect:focus { background: #e9eaf0; }
+        
+        #currencySelect {
+            border: none;
+            background: #f3f4f8;
+            border-radius: 7px;
+            padding: 8px 12px;
+            font-size: 1rem;
+            color: #222;
+            outline: none;
+            margin-left: 6px;
+            transition: background 0.2s;
+        }
+        #currencySelect:focus { background: #e9eaf0; }
+        
         /* Mobile optimization */
         @media (max-width: 600px) {
             .container { 
@@ -149,18 +175,52 @@
             <option value="no">Norsk</option>
         </select>
     </div>
+    <div style="text-align:right;margin-bottom:10px;">
+        <label for="timezoneSelect" style="font-weight:normal;" id="timezoneLabel">时区：</label>
+        <select id="timezoneSelect">
+            <option value="auto" data-zh="自动检测" data-en="Auto Detect" data-no="Auto-oppdagelse">自动检测</option>
+            <option value="Asia/Shanghai" data-zh="中国" data-en="China" data-no="Kina">中国 (UTC+8)</option>
+            <option value="America/New_York" data-zh="美国东部" data-en="US East" data-no="US Øst">美国东部 (UTC-5)</option>
+            <option value="America/Los_Angeles" data-zh="美国西部" data-en="US West" data-no="US Vest">美国西部 (UTC-8)</option>
+            <option value="Europe/London" data-zh="英国" data-en="UK" data-no="Storbritannia">英国 (UTC+0)</option>
+            <option value="Europe/Paris" data-zh="欧洲" data-en="Europe" data-no="Europa">欧洲 (UTC+1)</option>
+            <option value="Asia/Tokyo" data-zh="日本" data-en="Japan" data-no="Japan">日本 (UTC+9)</option>
+            <option value="Asia/Seoul" data-zh="韩国" data-en="Korea" data-no="Korea">韩国 (UTC+9)</option>
+            <option value="Australia/Sydney" data-zh="澳大利亚" data-en="Australia" data-no="Australia">澳大利亚 (UTC+10)</option>
+            <option value="Europe/Oslo" data-zh="挪威" data-en="Norway" data-no="Norge">挪威 (UTC+1)</option>
+            <option value="Europe/Stockholm" data-zh="瑞典" data-en="Sweden" data-no="Sverige">瑞典 (UTC+1)</option>
+            <option value="Europe/Berlin" data-zh="德国" data-en="Germany" data-no="Tyskland">德国 (UTC+1)</option>
+            <option value="Asia/Singapore" data-zh="新加坡" data-en="Singapore" data-no="Singapore">新加坡 (UTC+8)</option>
+            <option value="Asia/Hong_Kong" data-zh="香港" data-en="Hong Kong" data-no="Hong Kong">香港 (UTC+8)</option>
+            <option value="Asia/Taipei" data-zh="台湾" data-en="Taiwan" data-no="Taiwan">台湾 (UTC+8)</option>
+        </select>
+    </div>
     <h2 id="title">下班倒计时 & 实时工资计算器</h2>
-    <label id="labelStart">上班时间（如 09:00）
-        <input type="time" id="startTime" value="09:00">
+    <label id="labelStart">上班时间（如 09:30）
+        <input type="time" id="startTime" value="09:30">
     </label>
-    <label id="labelEnd">下班时间（如 18:00）
-        <input type="time" id="endTime" value="18:00">
+    <label id="labelEnd">下班时间（如 17:30）
+        <input type="time" id="endTime" value="17:30">
     </label>
     <label id="labelSalary">月薪（元）
-        <input type="number" id="monthlySalary" value="10000" min="0">
+        <input type="number" id="monthlySalary" value="2690" min="0">
+    </label>
+    <label id="labelCurrency">货币
+        <select id="currencySelect">
+            <option value="CNY" data-zh="人民币" data-en="Chinese Yuan" data-no="Kinesisk Yuan">人民币 (CNY)</option>
+            <option value="USD" data-zh="美元" data-en="US Dollar" data-no="US Dollar">美元 (USD)</option>
+            <option value="EUR" data-zh="欧元" data-en="Euro" data-no="Euro">欧元 (EUR)</option>
+            <option value="NOK" data-zh="挪威克朗" data-en="Norwegian Krone" data-no="Norsk Krone">挪威克朗 (NOK)</option>
+            <option value="JPY" data-zh="日元" data-en="Japanese Yen" data-no="Japansk Yen">日元 (JPY)</option>
+            <option value="KRW" data-zh="韩元" data-en="Korean Won" data-no="Koreansk Won">韩元 (KRW)</option>
+            <option value="AUD" data-zh="澳元" data-en="Australian Dollar" data-no="Australsk Dollar">澳元 (AUD)</option>
+            <option value="GBP" data-zh="英镑" data-en="British Pound" data-no="Britiske Pund">英镑 (GBP)</option>
+        </select>
     </label>
     <div class="result">
+        <div class="row" id="rowCurrentTime">当前时间：<span class="countdown" id="currentTime">--:--:--</span></div>
         <div class="row" id="rowCountdown">距离下班还有：<span class="countdown" id="countdown">--:--:--</span></div>
+        <div class="row" id="rowDaily">日薪：<span class="money" id="dailySalary">￥0.00</span></div>
         <div class="row" id="rowToday">今日已赚：<span class="money" id="todayEarned">￥0.00</span></div>
         <div class="row" id="rowMonth">本月已赚：<span class="money" id="monthEarned">￥0.00</span></div>
         <div class="row" id="rowHourly">每小时：<span class="salary-rate" id="hourlySalary">￥0.00</span></div>
@@ -184,8 +244,46 @@ function getWorkSeconds(start, end) {
     return endSec - startSec;
 }
 
+// 获取指定时区的当前时间
+function getCurrentTimeInTimezone(timezone) {
+    if (timezone === 'auto') {
+        return new Date();
+    }
+    
+    try {
+        const now = new Date();
+        const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+        const targetTime = new Date(utc + (getTimezoneOffset(timezone) * 60000));
+        return targetTime;
+    } catch (e) {
+        return new Date(); // 如果时区无效，返回本地时间
+    }
+}
+
+// 获取时区偏移量（分钟）
+function getTimezoneOffset(timezone) {
+    const timezoneOffsets = {
+        'Asia/Shanghai': 480,      // UTC+8
+        'America/New_York': -300,  // UTC-5
+        'America/Los_Angeles': -480, // UTC-8
+        'Europe/London': 0,        // UTC+0
+        'Europe/Paris': 60,        // UTC+1
+        'Asia/Tokyo': 540,         // UTC+9
+        'Asia/Seoul': 540,         // UTC+9
+        'Australia/Sydney': 600,   // UTC+10
+        'Europe/Oslo': 60,         // UTC+1
+        'Europe/Stockholm': 60,    // UTC+1
+        'Europe/Berlin': 60,       // UTC+1
+        'Asia/Singapore': 480,     // UTC+8
+        'Asia/Hong_Kong': 480,     // UTC+8
+        'Asia/Taipei': 480         // UTC+8
+    };
+    return timezoneOffsets[timezone] || 0;
+}
+
 function getTodayWorkProgress(start, end) {
-    let now = new Date();
+    const timezone = document.getElementById('timezoneSelect').value;
+    let now = getCurrentTimeInTimezone(timezone);
     let [sh, sm] = start.split(":").map(Number);
     let [eh, em] = end.split(":").map(Number);
     let startSec = sh * 3600 + sm * 60;
@@ -203,7 +301,8 @@ function getTodayWorkProgress(start, end) {
 
 function getMonthWorkDays() {
     // 计算本月工作日天数（周一到周五）
-    let now = new Date();
+    const timezone = document.getElementById('timezoneSelect').value;
+    let now = getCurrentTimeInTimezone(timezone);
     let year = now.getFullYear();
     let month = now.getMonth();
     let days = new Date(year, month + 1, 0).getDate();
@@ -222,10 +321,13 @@ function getMonthWorkSeconds(start, end) {
 const i18n = {
     zh: {
         title: '下班倒计时 & 实时工资计算器',
-        start: '上班时间（如 09:00）',
-        end: '下班时间（如 18:00）',
+        start: '上班时间（如 09:30）',
+        end: '下班时间（如 17:30）',
         salary: '月薪（元）',
+        currency: '货币',
+        currentTime: '当前时间：',
         countdown: '距离下班还有：',
+        daily: '日薪：',
         today: '今日已赚：',
         month: '本月已赚：',
         hourly: '每小时：',
@@ -233,15 +335,19 @@ const i18n = {
         overtime: '加班损失：',
         offDutyBtn: '下班',
         offDutyClicked: '已下班',
-        currency: '￥',
-        lang: '语言'
+        currencySymbol: '￥',
+        lang: '语言',
+        timezone: '时区'
     },
     en: {
         title: 'Off Duty Countdown & Real-time Salary Calculator',
-        start: 'Start Time (e.g. 09:00)',
-        end: 'Off Duty Time (e.g. 18:00)',
-        salary: 'Monthly Salary (CNY)',
+        start: 'Start Time (e.g. 09:30)',
+        end: 'Off Duty Time (e.g. 17:30)',
+        salary: 'Monthly Salary',
+        currency: 'Currency',
+        currentTime: 'Current time:',
         countdown: 'Time left until off duty:',
+        daily: 'Daily salary:',
         today: 'Earned today:',
         month: 'Earned this month:',
         hourly: 'Per hour:',
@@ -249,15 +355,19 @@ const i18n = {
         overtime: 'Overtime loss:',
         offDutyBtn: 'Off Duty',
         offDutyClicked: 'Off Duty',
-        currency: '¥',
-        lang: 'Language'
+        currencySymbol: '¥',
+        lang: 'Language',
+        timezone: 'Timezone'
     },
     no: {
         title: 'Nedtelling til arbeidsdag slutt & Lønnskalkulator',
-        start: 'Arbeidsstart (f.eks. 09:00)',
-        end: 'Arbeidsslutt (f.eks. 18:00)',
-        salary: 'Månedslønn (CNY)',
+        start: 'Arbeidsstart (f.eks. 09:30)',
+        end: 'Arbeidsslutt (f.eks. 17:30)',
+        salary: 'Månedslønn',
+        currency: 'Valuta',
+        currentTime: 'Nåværende tid:',
         countdown: 'Tid igjen til arbeidsdag slutt:',
+        daily: 'Daglig lønn:',
         today: 'Tjent i dag:',
         month: 'Tjent denne måneden:',
         hourly: 'Per time:',
@@ -265,8 +375,9 @@ const i18n = {
         overtime: 'Overtidstap:',
         offDutyBtn: 'Av jobb',
         offDutyClicked: 'Av jobb',
-        currency: '¥',
-        lang: 'Språk'
+        currencySymbol: '¥',
+        lang: 'Språk',
+        timezone: 'Tidssone'
     }
 };
 
@@ -275,12 +386,43 @@ function setLang(lang) {
     document.getElementById('labelStart').childNodes[0].textContent = i18n[lang].start;
     document.getElementById('labelEnd').childNodes[0].textContent = i18n[lang].end;
     document.getElementById('labelSalary').childNodes[0].textContent = i18n[lang].salary;
+    document.getElementById('labelCurrency').childNodes[0].textContent = i18n[lang].currency;
+    document.getElementById('timezoneLabel').textContent = i18n[lang].timezone + '：';
+    document.getElementById('rowCurrentTime').childNodes[0].textContent = i18n[lang].currentTime;
     document.getElementById('rowCountdown').childNodes[0].textContent = i18n[lang].countdown;
+    document.getElementById('rowDaily').childNodes[0].textContent = i18n[lang].daily;
     document.getElementById('rowToday').childNodes[0].textContent = i18n[lang].today;
     document.getElementById('rowMonth').childNodes[0].textContent = i18n[lang].month;
     document.getElementById('rowHourly').childNodes[0].textContent = i18n[lang].hourly;
     document.getElementById('rowMinute').childNodes[0].textContent = i18n[lang].minute;
     document.getElementById('rowOvertime').childNodes[0].textContent = i18n[lang].overtime;
+    
+    // 更新时区选项的文本
+    const timezoneSelect = document.getElementById('timezoneSelect');
+    const selectedValue = timezoneSelect.value;
+    for (let option of timezoneSelect.options) {
+        const langKey = lang === 'zh' ? 'zh' : lang === 'en' ? 'en' : 'no';
+        const translatedText = option.getAttribute(`data-${langKey}`);
+        if (translatedText) {
+            const utcPart = option.textContent.match(/\(UTC[+-]\d+\)/);
+            option.textContent = translatedText + (utcPart ? ' ' + utcPart[0] : '');
+        }
+    }
+    timezoneSelect.value = selectedValue; // 保持选中状态
+    
+    // 更新货币选项的文本
+    const currencySelect = document.getElementById('currencySelect');
+    const selectedCurrency = currencySelect.value;
+    for (let option of currencySelect.options) {
+        const langKey = lang === 'zh' ? 'zh' : lang === 'en' ? 'en' : 'no';
+        const translatedText = option.getAttribute(`data-${langKey}`);
+        if (translatedText) {
+            const codePart = option.textContent.match(/\([A-Z]{3}\)/);
+            option.textContent = translatedText + (codePart ? ' ' + codePart[0] : '');
+        }
+    }
+    currencySelect.value = selectedCurrency; // 保持选中状态
+    
     updateOffDutyButton();
 }
 
@@ -288,9 +430,29 @@ let currentLang = 'zh';
 let offDutyClicked = false;
 let offDutyClickTime = null;
 
+// 货币配置
+const currencyConfig = {
+    CNY: { symbol: '￥', rate: 1.0 },
+    USD: { symbol: '$', rate: 0.14 },
+    EUR: { symbol: '€', rate: 0.13 },
+    NOK: { symbol: 'kr', rate: 1.5 },
+    JPY: { symbol: '¥', rate: 20.5 },
+    KRW: { symbol: '₩', rate: 185.0 },
+    AUD: { symbol: 'A$', rate: 0.21 },
+    GBP: { symbol: '£', rate: 0.11 }
+};
+
 document.getElementById('langSelect').addEventListener('change', function() {
     currentLang = this.value;
     setLang(currentLang);
+    update();
+});
+
+document.getElementById('timezoneSelect').addEventListener('change', function() {
+    update();
+});
+
+document.getElementById('currencySelect').addEventListener('change', function() {
     update();
 });
 
@@ -313,7 +475,8 @@ function updateOffDutyButton() {
 }
 
 function isAfterOffDutyTime(endTime) {
-    let now = new Date();
+    const timezone = document.getElementById('timezoneSelect').value;
+    let now = getCurrentTimeInTimezone(timezone);
     let [eh, em] = endTime.split(":").map(Number);
     let todayEndTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), eh, em, 0);
     return now > todayEndTime;
@@ -323,18 +486,24 @@ function update() {
     let start = document.getElementById('startTime').value;
     let end = document.getElementById('endTime').value;
     let salary = parseFloat(document.getElementById('monthlySalary').value) || 0;
+    let selectedCurrency = document.getElementById('currencySelect').value;
+    let currencyInfo = currencyConfig[selectedCurrency];
+    
     if (!start || !end || salary <= 0) {
+        document.getElementById('currentTime').textContent = now.toLocaleTimeString('zh-CN', { hour12: false });
         document.getElementById('countdown').textContent = '--:--:--';
-        document.getElementById('todayEarned').textContent = i18n[currentLang].currency + '0.00';
-        document.getElementById('monthEarned').textContent = i18n[currentLang].currency + '0.00';
-        document.getElementById('hourlySalary').textContent = i18n[currentLang].currency + '0.00';
-        document.getElementById('minuteSalary').textContent = i18n[currentLang].currency + '0.00';
-        document.getElementById('overtimeLoss').textContent = i18n[currentLang].currency + '0.00';
+        document.getElementById('dailySalary').textContent = currencyInfo.symbol + '0.00';
+        document.getElementById('todayEarned').textContent = currencyInfo.symbol + '0.00';
+        document.getElementById('monthEarned').textContent = currencyInfo.symbol + '0.00';
+        document.getElementById('hourlySalary').textContent = currencyInfo.symbol + '0.00';
+        document.getElementById('minuteSalary').textContent = currencyInfo.symbol + '0.00';
+        document.getElementById('overtimeLoss').textContent = currencyInfo.symbol + '0.00';
         document.getElementById('rowOvertime').style.display = 'none';
         return;
     }
     
-    let now = new Date();
+    const timezone = document.getElementById('timezoneSelect').value;
+    let now = getCurrentTimeInTimezone(timezone);
     let [eh, em] = end.split(":").map(Number);
     let endTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), eh, em, 0);
     let isAfterOffDuty = now > endTime;
@@ -345,58 +514,70 @@ function update() {
     let baseHourlyRate = dayEarn / (dayWorkSeconds / 3600);
     let baseMinuteRate = baseHourlyRate / 60;
     
-    let displayHourlyRate = baseHourlyRate;
-    let displayMinuteRate = baseMinuteRate;
+    // 货币转换
+    let convertedDayEarn = dayEarn * currencyInfo.rate;
+    let convertedHourlyRate = baseHourlyRate * currencyInfo.rate;
+    let convertedMinuteRate = baseMinuteRate * currencyInfo.rate;
+    
+    let displayHourlyRate = convertedHourlyRate;
+    let displayMinuteRate = convertedMinuteRate;
     
     // 逻辑处理
-    if (!isAfterOffDuty) {
-        // 上班时间内
-        if (offDutyClicked) {
-            // 点击了下班按钮 → 工资上涨到正确数额
-            displayHourlyRate = baseHourlyRate;
-            displayMinuteRate = baseMinuteRate;
-        } else {
-            // 没点击下班按钮 → 显示较低工资（比如打8折）
-            displayHourlyRate = baseHourlyRate * 0.8;
-            displayMinuteRate = baseMinuteRate * 0.8;
-        }
+    if (offDutyClicked) {
+        // 点击了下班按钮 → 立即获得全天工资
+        displayHourlyRate = convertedHourlyRate;
+        displayMinuteRate = convertedMinuteRate;
         document.getElementById('rowOvertime').style.display = 'none';
     } else {
-        // 下班时间后
-        if (!offDutyClicked) {
-            // 没点击下班按钮 → 工资实时下降 + 显示加班损失
+        // 没点击下班按钮
+        if (!isAfterOffDuty) {
+            // 上班时间内 → 显示较低工资（比如打8折）
+            displayHourlyRate = convertedHourlyRate * 0.8;
+            displayMinuteRate = convertedMinuteRate * 0.8;
+            document.getElementById('rowOvertime').style.display = 'none';
+        } else {
+            // 下班时间后 → 工资实时下降 + 显示加班损失
             let overtimeMinutes = Math.floor((now - endTime) / 60000);
             let reductionFactor = Math.max(0.1, 1 - (overtimeMinutes * 0.01)); // 每分钟减少1%，最低10%
-            displayHourlyRate = baseHourlyRate * reductionFactor;
-            displayMinuteRate = baseMinuteRate * reductionFactor;
+            displayHourlyRate = convertedHourlyRate * reductionFactor;
+            displayMinuteRate = convertedMinuteRate * reductionFactor;
             
             // 显示加班损失
-            let overtimeLoss = overtimeMinutes * baseMinuteRate * 0.01;
-            document.getElementById('overtimeLoss').textContent = i18n[currentLang].currency + overtimeLoss.toFixed(2);
+            let overtimeLoss = overtimeMinutes * convertedMinuteRate * 0.01;
+            document.getElementById('overtimeLoss').textContent = currencyInfo.symbol + overtimeLoss.toFixed(2);
             document.getElementById('rowOvertime').style.display = 'block';
-        } else {
-            // 点击了下班按钮 → 正常工资
-            displayHourlyRate = baseHourlyRate;
-            displayMinuteRate = baseMinuteRate;
-            document.getElementById('rowOvertime').style.display = 'none';
         }
     }
     
-    document.getElementById('hourlySalary').textContent = i18n[currentLang].currency + displayHourlyRate.toFixed(2);
-    document.getElementById('minuteSalary').textContent = i18n[currentLang].currency + displayMinuteRate.toFixed(2);
+    document.getElementById('dailySalary').textContent = currencyInfo.symbol + convertedDayEarn.toFixed(2);
+    document.getElementById('hourlySalary').textContent = currencyInfo.symbol + displayHourlyRate.toFixed(2);
+    document.getElementById('minuteSalary').textContent = currencyInfo.symbol + displayMinuteRate.toFixed(2);
     
     // 下班倒计时
-    if (endTime < now) endTime.setDate(endTime.getDate() + 1); // 跨天
-    let diff = Math.max(0, Math.floor((endTime - now) / 1000));
-    let h = Math.floor(diff / 3600), m = Math.floor((diff % 3600) / 60), s = diff % 60;
-    document.getElementById('countdown').textContent = pad(h) + ':' + pad(m) + ':' + pad(s);
+    if (offDutyClicked) {
+        // 点击了下班按钮 → 倒计时为0
+        document.getElementById('countdown').textContent = '00:00:00';
+    } else {
+        // 没点击下班按钮 → 正常倒计时
+        if (endTime < now) endTime.setDate(endTime.getDate() + 1); // 跨天
+        let diff = Math.max(0, Math.floor((endTime - now) / 1000));
+        let h = Math.floor(diff / 3600), m = Math.floor((diff % 3600) / 60), s = diff % 60;
+        document.getElementById('countdown').textContent = pad(h) + ':' + pad(m) + ':' + pad(s);
+    }
     
     // 今日已赚
     let { passed, workSec } = getTodayWorkProgress(start, end);
-    let todayEarned = dayEarn * (passed / workSec);
-    if (workSec === 0) todayEarned = 0;
+    let todayEarned;
+    if (offDutyClicked) {
+        // 点击了下班按钮 → 立即获得全天工资
+        todayEarned = convertedDayEarn;
+    } else {
+        // 没点击下班按钮 → 按实际工作时间计算
+        todayEarned = convertedDayEarn * (passed / workSec);
+        if (workSec === 0) todayEarned = 0;
+    }
     
-    document.getElementById('todayEarned').textContent = i18n[currentLang].currency + todayEarned.toFixed(2);
+    document.getElementById('todayEarned').textContent = currencyInfo.symbol + todayEarned.toFixed(2);
     
     // 本月已赚
     let nowDay = now.getDate();
@@ -409,11 +590,14 @@ function update() {
             if (d === nowDay) {
                 earned += todayEarned;
             } else {
-                earned += dayEarn;
+                earned += convertedDayEarn;
             }
         }
     }
-    document.getElementById('monthEarned').textContent = i18n[currentLang].currency + earned.toFixed(2);
+    document.getElementById('monthEarned').textContent = currencyInfo.symbol + earned.toFixed(2);
+    
+    // 显示当前时间
+    document.getElementById('currentTime').textContent = now.toLocaleTimeString('zh-CN', { hour12: false });
 }
 
 ['startTime', 'endTime', 'monthlySalary'].forEach(id => {
